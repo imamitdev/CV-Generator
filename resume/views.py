@@ -27,3 +27,11 @@ def resume(request):
         )
         resume_profile.save()
     return render(request, "resume.html")
+
+
+def resume(request, id):
+    user_profile = Profile.objects.get(pk=id)
+    context = {
+        "user_profile": user_profile,
+    }
+    return render(request, "pdf/resume.html", context)
