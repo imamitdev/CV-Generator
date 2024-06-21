@@ -1,5 +1,8 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, HttpResponse, get_object_or_404
 from .models import Profile
+import pdfkit
+from django.template import loader
+import io
 
 
 # Create your views here.
@@ -29,9 +32,16 @@ def resume(request):
     return render(request, "resume.html")
 
 
-def resume(request, id):
-    user_profile = Profile.objects.get(pk=id)
-    context = {
-        "user_profile": user_profile,
+def generate_resume_pdf(request, id):
+    user_profile = get_object_or_404(Profile, pk=id)
+    template = loader.get_template("pdf/resume.html")
+    html = template.render({"user_profile": user_profile})
+    options = {
+        "page-size": "Letter",
+        "encoding": "UTF-8",
     }
-    return render(request, "pdf/resume.html", context)
+    pdf = pdfkit.from_string(html, False, options)
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = "attachment"
+    filename = "resume.pdf"
+    return response
